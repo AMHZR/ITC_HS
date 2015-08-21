@@ -1,0 +1,42 @@
+<form method="get" action="">
+    <table>
+        <tbody>
+            {{ form.as_table }}
+            <tr>
+                <td>&nbsp;</td>
+                <td><input type="submit" value="Search"></td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+
+{% if query %}
+    <!-- Begin faceting. -->
+    <h2>By Author</h2>
+
+    <div>
+        <dl>
+            {% if facets.fields.author %}
+                <dt>Author</dt>
+                {# Provide only the top 5 authors #}
+                {% for author in facets.fields.author|slice:":5" %}
+                    <dd><a href="{{ request.get_full_path }}&amp;selected_facets=author_exact:{{ author.0|urlencode }}">{{ author.0 }}</a> ({{ author.1 }})</dd>
+                {% endfor %}
+            {% else %}
+                <p>No author facets.</p>
+            {% endif %}
+        </dl>
+    </div>
+    <!-- End faceting -->
+
+    <!-- Display results... -->
+    {% for result in page.object_list %}
+        <div class="search_result">
+            <h3><a href="{{ result.object.get_absolute_url }}">{{ result.object.title }}</a></h3>
+
+            <p>{{ result.object.body|truncatewords:80 }}</p>
+        </div>
+    {% empty %}
+        <p>Sorry, no results found.</p>
+    {% endfor %}
+{% endif %}

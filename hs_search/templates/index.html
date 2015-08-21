@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% load facet_tags %}
+{% block extra_script %}
+    <style type="text/css">
+        .dropdown.dropdown-lg .dropdown-menu {
+            margin-top: -1px;
+            padding: 6px 20px;
+        }
+
+        .input-group-btn .btn-group {
+            display: flex !important;
+        }
+
+        .btn-group .btn {
+            border-radius: 0;
+            margin-left: -1px;
+        }
+
+        .btn-group .btn:last-child {
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+        .btn-group .form-horizontal .btn[type="submit"] {
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .form-horizontal .form-group {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .form-group .form-control:last-child {
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
+
+        @media screen and (min-width: 768px) {
+            #adv-search {
+                width: 500px;
+                margin: 0 auto;
+            }
+
+            .dropdown.dropdown-lg {
+                position: static !important;
+            }
+
+            .dropdown.dropdown-lg .dropdown-menu {
+                min-width: 500px;
+            }
+        }
+
+        .panel-heading .accordion-toggle:after {
+            /* symbol for "opening" panels */
+            font-family: 'Glyphicons Halflings'; /* essential for enabling glyphicon */
+            content: "\e114"; /* adjust as needed, taken from bootstrap.css */
+            float: right; /* adjust as needed */
+            color: grey; /* adjust as needed */
+        }
+
+        .panel-heading .accordion-toggle.collapsed:after {
+            /* symbol for "collapsed" panels */
+            content: "\e080"; /* adjust as needed, taken from bootstrap.css */
+        }
+        .thumbnail .caption {
+            padding: 9px;
+            color: #333;
+            height: 125px;
+            overflow: scroll;
+        }
+    </style>
+    {{ form.media }}
+{% endblock %}
+
+{% block container %}
+
+    <div class="input-group" id="adv-search">
+        <form class="form-horizontal" role="form">
+            {{ form.keywords }}
+        </form>
+        <div class="input-group-btn">
+            <div class="btn-group" role="group">
+                <div class="dropdown dropdown-lg">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
+                            aria-expanded="false"><span class="caret"></span></button>
+                    <div class="dropdown-menu dropdown-menu-right" role="menu">
+                        <form class="form-horizontal" role="form">
+                            <span style="display: none;">{{ form.keywords }}</span>
+
+                            <div class="form-group">
+                                <label for="filter">Filter by Section</label>
+                                {{ form.section }}
+                            </div>
+                            <div class="form-group">
+                                <label for="contain">Chapter</label>
+                                {{ form.chapter }}
+                            </div>
+                            <div class="form-group">
+                                <label for="contain">Article</label>
+                                {{ form.article }}
+                            </div>
+                            <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"
+                                                                                aria-hidden="true"></span></button>
+                        </form>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary"><span class="glyphicon glyphicon-search"
+                                                                    aria-hidden="true"></span></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <h4>Filter Results</h4>
+            <div class="panel-group" id="accordion">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h5 class="panel-title">
+                            <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion"
+                               href="#collapseTwo">Chapter</a>
+                        </h5>
+                    </div>
+                    <div id="collapseTwo" class="panel-collapse collapse">
+                        <div class="panel-body" style="font-size: 13px;">
+                        <form method="GET" action="." name="filterForm2" id="filterForm2">
+                                {% for value, count in sqs.facets.facet_fields.chapter.items %}
+                                    {% if forloop.counter <= 5 %}
+                                        <input type="checkbox" {% if value in request.GET|to_list:'chapter' %} checked=checked{% endif %} value="{{ value }}" id="id_chapter" name="chapter"/> <a href="&chapter={{ value }}" data-toggle="tooltip" title="{{ value }}" data-placement="top">
+                                        {{ value|title|truncatechars:24 }}</a> ({{ count }})</br>
+                                    {% endif %}
+                                    {% if forloop.counter == 5 %}
+                                        <div id="ReadMoreInfo" class="panel-collapse collapse ">
+                                    {% endif %}
+                                    {% if forloop.counter > 5 %}
+                                            <input type="checkbox" {% if value in request.GET|to_list:'chapter' %} checked=checked{% endif %} value="{{ value }}" id="id_chapter" name="chapter"/> <a href="#" data-toggle="tooltip" title="{{ value }}" data-placement="top">
+                                            {{ value|title|truncatechars:24 }}</a> ({{ count }})</br>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if sqs.facets.facet_fields.chapter.items|length > 5 %}
+                                    </div>
+                                    <a data-toggle="collapse" data-target="#ReadMoreInfo" class="pull-right collapsed" aria-expanded="false"> Read More / Less</a>
+                                {% endif %}
+                                <button type="submit" class="btn-small btn-success">Apply</button>
+                                <button class="btn-small btn-danger" onclick="removeURLParameter('chapter');" type="reset">clear</button>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h5 class="panel-title">
+                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion"href="#collapseOne">Section</a>
+                        </h5>
+                    </div>
+                    <div id="collapseOne" class="panel-collapse collapse in">
+                        <div class="panel-body" style="font-size: 13px;">
+                        <form method="GET" action="." name="filterForm" id="filterForm">
+
+                                {% for value, count in sqs.facets.facet_fields.section.items|slice:":5" %}
+                                    <input type="checkbox" {% if value in request.GET|to_list:'section' %} checked=checked{% endif %} value="{{ value }}" id="id_section" name="section"/> <a href="&section={{ value }}" data-toggle="tooltip" title="{{ value }}" data-placement="top">
+                                        {{ value|title|truncatechars:24 }}</a> ({{ count }})</br>
+                                {% endfor %}
+                                <button type="submit" class="btn-small btn-success">Apply</button>
+                                <button class="btn-small btn-danger" onclick="removeURLParameter('section');" type="reset">clear</button>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h5 class="panel-title">
+                            <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion"
+                               href="#collapseThree">Atricle</a>
+                        </h5>
+                    </div>
+                    <div id="collapseThree" class="panel-collapse collapse">
+                        <div class="panel-body" style="font-size: 13px;">
+                        <form method="GET" action="." name="filterForm3" id="filterForm3">
+                                {% for value, count in sqs.facets.facet_fields.article_exact.items|slice:":5" %}
+                                    <input type="checkbox" {% if value in request.GET|to_list:'article_exact' %} checked=checked{% endif %} value="{{ value }}" id="id_article_exact" name="article_exact"/> <a href="&article_exact={{ value }}" data-toggle="tooltip" title="{{ value }}" data-placement="top">
+                                        {{ value|title|truncatechars:24 }}</a> ({{ count }})</br>
+                                {% endfor %}
+                                <button type="submit" class="btn-small btn-success">Apply</button>
+                                <button class="btn-small btn-danger" onclick="removeURLParameter('article_exact');" type="reset">clear</button>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h5 class="panel-title">
+                            <a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion"
+                               href="#collapseFour">Policy</a>
+                        </h5>
+                    </div>
+                    <div id="collapseFour" class="panel-collapse collapse">
+                        <div class="panel-body" style="font-size: 13px;">
+                        <form method="GET" action="." name="filterForm4" id="filterForm4">
+                                {% for value, count in sqs.facets.facet_fields.policy_exact.items|slice:":5" %}
+                                    <input type="checkbox" {% if value in request.GET|to_list:'policy_exact' %} checked=checked{% endif %} value="{{ value }}" id="id_policy_exact" name="policy_exact"/> <a href="&policy_exact={{ value }}" data-toggle="tooltip" title="{{ value }}" data-placement="top">
+                                        {{ value|title|truncatechars:24 }}</a> ({{ count }})</br>
+                                {% endfor %}
+                                <button type="submit" class="btn-small btn-success">Apply</button>
+                                <button class="btn-small btn-danger" onclick="removeURLParameter('policy_exact');" type="reset">clear</button>
+                        </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <div class="col-md-9">
+            <h3>Found <span style="color: darkslategrey">{{ sqs.hits }}</span> results for <span style="color: red;">{{ query.keywords|default:'Search Query' }}</span></h3>
+                <div class="row">
+                    {% for result in sqs %}
+                        <div class="col-sm-4 col-lg-4 col-md-4">
+                            <div class="thumbnail">
+                                {% if result.policy == 'Free' %}
+                                    <h2 style="background-color:#124f20; color: white">{{ result.hs }}</h2>
+                                {% elif result.policy == 'Restricted' or result.policy == 'Prohibited'  %}
+                                    <h2 style="background-color:#8b0309; color: white">{{ result.hs }}</h2>
+                                {% else %}
+                                    <h2 style="background-color:#8b6815; color: white">{{ result.hs }}</h2>
+                                {% endif %}
+
+                                <div class="caption">
+                                    <p>{{ result.article|title|truncatechars:100 }}</p>
+                                    <p>{{ result.desc|title }}</p>
+                                    {% if result.hs6 %}
+                                        <p>{{ result.hs6|title|truncatechars:50 }}</p>
+                                    {% else %}
+                                        <p>{{ result.hs8|title|truncatechars:50 }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="ratings">
+{#                                    <p class="pull-right">{{ result.policy }}</p>#}
+                                    <p><span class="glyphicon">{{ result.policy }}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                <div style="position: relative; clear: both;">
+                <ul class="pager">
+                    {% if results.has_previous %}
+                        <li class="previous"><a onclick="updateQueryStringParameter('page',{{ results.previous_page_number }});" > &larr; Previous</a></li>
+                    {% endif %}
+
+                    <span class="">
+                        Page {{ results.number }} of {{ results.paginator.num_pages }}.
+                    </span>
+
+                    {% if results.has_next %}
+                         <li class="next"><a onclick="updateQueryStringParameter('page',{{ results.next_page_number }});" > Next &rarr;</a></li>
+                    {% endif %}
+                </ul>
+                </div>
+                </div>
+            </div>
+    </div>
+
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+    <script>
+        jQuery(document).ready(function () {
+            jQuery('[data-toggle="tooltip"]').tooltip();
+            $('.panel-collapse:not(".in")').collapse('show');
+            $('#ReadMoreInfo').collapse('hide');
+        });
+
+    $('#filterForm,#filterForm2,#filterForm3,#filterForm4').submit(function(){
+        var url = $('form').serialize();
+        $(location).attr('href','?'+url);
+        return false
+    })
+
+    function updateQueryStringParameter(key, value) {
+        var uri = location.search;
+        var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+        var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+        if (uri.match(re)) {
+             $(location).attr('href', uri.replace(re, '$1' + key + "=" + value + '$2'));
+        }
+        else {
+             $(location).attr('href', uri + separator + key + "=" + value);
+        }
+    }
+
+    function removeURLParameter(parameter) {
+       var url= window.location.href;
+        var urlparts= url.split('?');
+        if (urlparts.length>=2) {
+
+            var prefix= encodeURIComponent(parameter)+'=';
+            var pars= urlparts[1].split(/[&;]/g);
+
+            //reverse iteration as may be destructive
+            for (var i= pars.length; i-- > 0;) {
+                //idiom for string.startsWith
+                if (pars[i].lastIndexOf(prefix, 0) !== -1) {
+                    pars.splice(i, 1);
+                }
+            }
+
+            url= urlparts[0]+'?'+pars.join('&');
+             $(location).attr('href',url);
+        } else {
+            $(location).attr('href',url);
+        }
+        return false;
+    }
+
+    </script>
+{% endblock %}
